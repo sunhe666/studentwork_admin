@@ -20,8 +20,9 @@ export default defineConfig({
           }
         },
         '/api': {
-          target: 'http://sunhe.site',
+          target: 'https://bishe.asia',
           changeOrigin: true,
+          secure: true,
           rewrite: path => path.replace(/^\/api/, '')
         }
     }
