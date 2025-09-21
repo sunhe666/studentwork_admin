@@ -1,0 +1,72 @@
+[
+  {"zhuanye": "哲学"},
+  {"zhuanye": "逻辑学"},
+  {"zhuanye": "宗教学"},
+  {"zhuanye": "伦理学"},
+  
+  {"zhuanye": "经济学"},
+  {"zhuanye": "金融工程"},
+  {"zhuanye": "数字经济"},
+  {"zhuanye": "国际税收"},
+  {"zhuanye": "金融科技"},
+  
+  {"zhuanye": "法学"},
+  {"zhuanye": "知识产权"},
+  {"zhuanye": "国际事务与国际关系"},
+  {"zhuanye": "纪检监察"},
+  {"zhuanye": "国家安全学"},
+  
+  {"zhuanye": "教育学"},
+  {"zhuanye": "学前教育"},
+  {"zhuanye": "人工智能教育"},
+  {"zhuanye": "运动康复"},
+  {"zhuanye": "航空运动"},
+  
+  {"zhuanye": "文学"},
+  {"zhuanye": "汉语言文学"},
+  {"zhuanye": "英语"},
+  {"zhuanye": "翻译"},
+  {"zhuanye": "区域国别学"},
+  
+  {"zhuanye": "历史学"},
+  {"zhuanye": "考古学"},
+  {"zhuanye": "文物与博物馆学"},
+  {"zhuanye": "古文字学"},
+  
+  {"zhuanye": "理学"},
+  {"zhuanye": "数学与应用数学"},
+  {"zhuanye": "海洋科学与技术"},
+  {"zhuanye": "智能分子工程"},
+  {"zhuanye": "生物信息学"},
+  
+  {"zhuanye": "工学"},
+  {"zhuanye": "计算机科学与技术"},
+  {"zhuanye": "低空技术与工程"},
+  {"zhuanye": "碳中和科学与工程"},
+  {"zhuanye": "集成电路科学与工程"},
+  {"zhuanye": "智能视听工程"},
+  
+  {"zhuanye": "农学"},
+  {"zhuanye": "智慧农业"},
+  {"zhuanye": "茶学"},
+  {"zhuanye": "林学"},
+  {"zhuanye": "动物医学"},
+  
+  {"zhuanye": "医学"},
+  {"zhuanye": "医疗器械与装备工程"},
+  {"zhuanye": "老年医学与健康"},
+  {"zhuanye": "口腔医学"},
+  {"zhuanye": "智能医学工程"},
+  
+  {"zhuanye": "管理学"},
+  {"zhuanye": "国际邮轮管理"},
+  {"zhuanye": "健康与医疗保障"},
+  {"zhuanye": "人才发展与管理"},
+  {"zhuanye": "大数据管理与应用"},
+  
+  {"zhuanye": "艺术学"},
+  {"zhuanye": "数字戏剧"},
+  {"zhuanye": "游戏艺术设计"},
+  {"zhuanye": "虚拟空间艺术"},
+  {"zhuanye": "音乐科技"}
+]

@@ -1,0 +1,23 @@
+.editor-container {
+  border: 1px solid #e4e7ed;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.w-e-toolbar {
+  border-bottom: 1px solid #e4e7ed;
+  padding: 8px 5px;
+  background-color: #f5f7fa;
+}
+
+.w-e-text-container {
+  height: 300px;
+  overflow-y: auto;
+  padding: 10px;
+  box-sizing: border-box;
+}
+
+/* 适配Element Plus的表单样式 */
+.el-form-item__content .editor-container {
+  width: 100%;
+}
