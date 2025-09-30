@@ -2,8 +2,8 @@ import axios from 'axios';
 
 // 创建axios实例
 const service = axios.create({
-  // baseURL: 'https://bishe.asia', // 更新为新的后端API地址
-  baseURL: 'http://localhost:3000', // 本地开发地址
+  baseURL: 'https://bishe.asia', // 更新为新的后端API地址
+  // baseURL: 'http://localhost:3000', // 本地开发地址
   // baseURL: '/api', // 相对路径
 
   timeout: 10000, // 请求超时时间
