@@ -111,24 +111,38 @@
     <!-- 文件预览对话框 -->
     <el-dialog v-model="filePreviewVisible" title="论文预览" width="80%" :fullscreen="false">
       <div class="file-preview-container">
+        <!-- 加载指示器 -->
+        <div v-if="fileLoading && !fileLoadError" class="loading-container">
+          <el-icon class="rotating">
+            <Loading />
+          </el-icon>
+          <p>正在加载文件...</p>
+        </div>
 
         <!-- 使用vue-pdf-embed组件预览PDF -->
         <vue-pdf-embed
-          v-if="currentFileUrl && !fileLoadError"
+          v-if="currentFileUrl && !fileLoadError && !fileLoading"
           :source="currentFileUrl"
           class="pdf-embed"
           @load="handlePdfLoad"
           @error="handlePdfError"
         />
+        
+        <!-- 错误信息显示 -->
         <div v-if="fileLoadError" class="error-message">
-          <el-icon name="warning"></el-icon>
+          <el-icon class="warning-icon">
+            <Warning />
+          </el-icon>
           <p>{{ fileLoadErrorMessage }}</p>
-          <el-button type="primary" size="small" @click="reloadFilePreview">重新加载</el-button>
-          <el-button size="small" @click="downloadFile">下载文件</el-button>
+          <div class="error-actions">
+            <el-button type="primary" size="small" @click="reloadFilePreview">重新加载</el-button>
+            <el-button size="small" @click="downloadFile">尝试下载</el-button>
+          </div>
         </div>
       </div>
       <template #footer>
         <el-button @click="filePreviewVisible = false">关闭</el-button>
+        <el-button v-if="currentFileUrl && !fileLoadError" type="primary" @click="downloadFile">下载文件</el-button>
       </template>
     </el-dialog>
   </div>
@@ -137,7 +151,7 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue';
 import { ElMessage, ElIcon } from 'element-plus';
-import { Warning } from '@element-plus/icons-vue';
+import { Warning, Loading } from '@element-plus/icons-vue';
 import VuePdfEmbed from 'vue-pdf-embed';
 import service from '../axios';
 
@@ -174,11 +188,13 @@ const deleteDialogVisible = ref(false);
 const filePreviewVisible = ref(false);
 const currentPaperId = ref(null);
 const currentFileUrl = ref('');
+const originalFileUrl = ref(''); // 保存原始URL用于下载
 const isCreate = ref(true);
 
 // 文件预览状态
 const fileLoadError = ref(false);
 const fileLoadErrorMessage = ref('');
+const fileLoading = ref(false);
 
 // 文件上传相关
 const fileList = ref([]);
@@ -357,11 +373,35 @@ const submitForm = async () => {
   }
 };
 
+// 将OSS URL转换为代理URL
+const getProxyUrl = (originalUrl) => {
+  if (!originalUrl) return '';
+  
+  // 如果已经是代理URL，直接返回
+  if (originalUrl.includes('/api/upload/proxy?')) {
+    return originalUrl;
+  }
+  
+  // 将OSS URL作为查询参数通过代理访问
+  const encodedUrl = encodeURIComponent(originalUrl);
+  return `/api/upload/proxy?url=${encodedUrl}`;
+};
+
 // 查看文件
 const handleViewFile = (fileUrl) => {
-  console.log('查看文件URL:', fileUrl);
-  currentFileUrl.value = fileUrl;
+  console.log('原始文件URL:', fileUrl);
+  
+  // 保存原始URL用于下载
+  originalFileUrl.value = fileUrl;
+  
+  // 使用代理URL避免CORS问题
+  const proxyUrl = getProxyUrl(fileUrl);
+  console.log('代理文件URL:', proxyUrl);
+  
+  currentFileUrl.value = proxyUrl;
   filePreviewVisible.value = true;
+  fileLoading.value = true;
+  
   // 重置错误状态
   fileLoadError.value = false;
   fileLoadErrorMessage.value = '';
@@ -373,18 +413,22 @@ const handleViewFile = (fileUrl) => {
 const handlePdfLoad = () => {
   console.log('PDF加载成功');
   fileLoadError.value = false;
+  fileLoading.value = false;
 };
 
 // PDF加载错误处理
 const handlePdfError = (error) => {
   console.error('PDF加载错误:', error);
   fileLoadError.value = true;
+  fileLoading.value = false;
   fileLoadErrorMessage.value = error.message || '文件加载失败，可能是网络问题、文件格式不支持或文件不存在。';
 };
 
 // 重新加载文件预览
 const reloadFilePreview = () => {
   fileLoadError.value = false;
+  fileLoading.value = true;
+  
   // 强制重新加载
   const tempUrl = currentFileUrl.value;
   currentFileUrl.value = '';
@@ -395,7 +439,9 @@ const reloadFilePreview = () => {
 
 // 下载文件
 const downloadFile = () => {
-  window.open(currentFileUrl.value, '_blank');
+  // 使用原始URL进行下载，如果失败则尝试代理URL
+  const downloadUrl = originalFileUrl.value || currentFileUrl.value;
+  window.open(downloadUrl, '_blank');
 };
 
 // 删除论文
@@ -479,18 +525,18 @@ onMounted(() => {
 .pdf-embed {
   width: 100%;
   height: 100%;
+  border: none;
+  border-radius: 8px;
 }
- 
 
-
-
-.error-message {
+/* 加载容器样式 */
+.loading-container {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(255, 255, 255, 0.9);
+  background-color: rgba(255, 255, 255, 0.95);
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -500,19 +546,73 @@ onMounted(() => {
   z-index: 10;
 }
 
-.error-message .el-icon-warning {
+.loading-container .el-icon {
   font-size: 48px;
-  color: #f56c6c;
+  color: #409eff;
   margin-bottom: 16px;
 }
 
-.error-message p {
-  margin-bottom: 20px;
+.loading-container p {
   color: #606266;
+  font-size: 16px;
+  margin: 0;
 }
 
-.error-message .el-button {
-  margin: 0 8px;
+/* 旋转动画 */
+.rotating {
+  animation: rotate 2s linear infinite;
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* 错误信息样式 */
+.error-message {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(255, 255, 255, 0.95);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 40px 20px;
+  text-align: center;
+  z-index: 10;
+  border-radius: 8px;
+}
+
+.error-message .warning-icon {
+  font-size: 64px;
+  color: #f56c6c;
+  margin-bottom: 20px;
+}
+
+.error-message p {
+  margin-bottom: 24px;
+  color: #606266;
+  font-size: 16px;
+  line-height: 1.6;
+  max-width: 400px;
+}
+
+.error-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.error-actions .el-button {
+  min-width: 100px;
 }
 
 /* 增强表格行悬停效果 */
