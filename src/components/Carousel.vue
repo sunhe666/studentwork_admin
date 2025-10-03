@@ -44,13 +44,15 @@
         <el-form-item label="图片" prop="image_url">
           <el-upload
             class="upload-demo"
-            action="/api/upload/single"
+            :action="getUploadUrl()"
             :headers="uploadHeaders"
             :show-file-list="false"
             :on-success="handleUploadSuccess"
+            :on-error="handleUploadError"
             :before-upload="beforeUpload"
             :data="{}"
             name="file"
+            :with-credentials="false"
           >
             <el-button type="primary">上传图片</el-button>
           </el-upload>
@@ -75,6 +77,13 @@
 import { ref, reactive, onMounted } from 'vue';
 import { ElMessage } from 'element-plus';
 import service from '../axios';
+
+// 动态获取上传URL
+const getUploadUrl = () => {
+  // 从axios配置中获取baseURL，如果没有则使用默认值
+  const baseURL = service.defaults.baseURL || 'http://localhost:3000';
+  return `${baseURL}/api/upload/single`;
+};
 
 const bannerList = ref([]);
 const loading = ref(false);
@@ -116,13 +125,20 @@ function openEditDialog(row) {
   dialogVisible.value = true;
 }
 
-function handleUploadSuccess(res) {
-  if (res.url) {
+function handleUploadSuccess(res, file) {
+  console.log('上传成功回调:', res, file);
+  if (res && res.url) {
     form.image_url = res.url;
     ElMessage.success('图片上传成功');
   } else {
-    ElMessage.error('图片上传失败');
+    ElMessage.error('图片上传失败，请重试');
+    console.error('上传响应异常:', res);
   }
+}
+
+function handleUploadError(err, file) {
+  console.error('上传失败:', err, file);
+  ElMessage.error('图片上传失败，请检查网络连接或联系管理员');
 }
 
 function beforeUpload(file) {
@@ -134,6 +150,11 @@ function beforeUpload(file) {
 }
 
 function submitForm() {
+  if (!formRef.value) {
+    ElMessage.error('表单引用未找到');
+    return;
+  }
+  
   formRef.value.validate(async valid => {
     if (!valid) return;
     try {
@@ -148,6 +169,7 @@ function submitForm() {
       fetchList();
     } catch (e) {
       ElMessage.error('操作失败');
+      console.error('提交表单失败:', e);
     }
   });
 }

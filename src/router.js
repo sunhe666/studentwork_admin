@@ -16,6 +16,8 @@ import EmployeeManagement from './components/EmployeeManagement.vue';
 import LogManagement from './components/LogManagement.vue';
 import Dashboard from './components/Dashboard.vue';
 import RecruitmentManagement from './components/RecruitmentManagement.vue';
+import ReductionManagement from './components/ReductionManagement.vue';
+import OriginalFileViewer from './components/OriginalFileViewer.vue';
 
 
 const Settings = { template: '<div>系统设置内容</div>' };
@@ -80,6 +82,8 @@ const routes = [
      {      path: '/employee',      name: 'employee',      component: EmployeeManagement,      meta: { title: '员工管理' }    },
           { path: '/position', name: 'PositionManagement', component: RecruitmentManagement, meta: { title: '招聘管理' } },
     {      path: '/log',      name: 'LogManagement',      component: LogManagement,      meta: { title: '日志管理' }    },
+    {      path: '/reduction-management',      name: 'ReductionManagement',      component: ReductionManagement,      meta: { title: '降重记录管理' }    },
+    {      path: '/original-file-viewer/:id',      name: 'OriginalFileViewer',      component: OriginalFileViewer,      meta: { title: '原始文件查看' }    },
       {    path: '/compression',    name: 'FileCompression',    component: FileCompression  },
       {    path: '/conversion',    name: 'FileConversion',    component: FileConversion, meta: { title: '文件格式转换' }  },
  

@@ -112,7 +112,8 @@ onMounted(() => {
         { id: 2, menu_name: '用户管理', path: 'user', icon: 'User' },
         { id: 3, menu_name: '日志管理', path: 'log', icon: 'File' },
         { id: 4, menu_name: '职位管理', path: 'position', icon: 'Briefcase' },
-        { id: 5, menu_name: '招聘管理', path: 'recruitment', icon: 'Plus' }
+        { id: 5, menu_name: '招聘管理', path: 'recruitment', icon: 'Plus' },
+        { id: 6, menu_name: '降重记录管理', path: 'reduction-management', icon: 'Document' }
       ];
     }
   } catch (error) {

@@ -75,11 +75,12 @@
         <el-form-item label="论文文件" prop="thesis_file">
           <el-upload
             class="upload-demo"
-            action="/api/upload/single"
+            :action="getUploadUrl()"
             :on-success="handleFileUploadSuccess"
             :before-upload="beforeUpload"
             :file-list="fileList"
             :auto-upload="true"
+            :with-credentials="false"
           >
             <el-button type="primary">点击上传</el-button>
             <template #tip>
@@ -154,6 +155,13 @@ import { ElMessage, ElIcon } from 'element-plus';
 import { Warning, Loading } from '@element-plus/icons-vue';
 import VuePdfEmbed from 'vue-pdf-embed';
 import service from '../axios';
+
+// 动态获取上传URL
+const getUploadUrl = () => {
+  // 从axios配置中获取baseURL，如果没有则使用默认值
+  const baseURL = service.defaults.baseURL || 'http://localhost:3000';
+  return `${baseURL}/api/upload/single`;
+};
 
 
 // 获取当前登录用户信息
@@ -259,9 +267,18 @@ const beforeUpload = (file) => {
 };
 
 // 文件上传成功处理
-const handleFileUploadSuccess = (response) => {
+const handleFileUploadSuccess = (response, file) => {
     if (response && response.url) {
       form.thesis_file = response.url;
+      
+      // 如果标题为空，自动设置为文件名（去掉扩展名）
+      if (!form.title.trim()) {
+        const fileName = file.name;
+        // 去掉文件扩展名
+        const titleFromFile = fileName.replace(/\.[^/.]+$/, "");
+        form.title = titleFromFile;
+      }
+      
       ElMessage.success('文件上传成功');
     } else {
       ElMessage.error('文件上传失败，请重试');

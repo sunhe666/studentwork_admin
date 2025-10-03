@@ -78,12 +78,14 @@
         <el-form-item label="封面图" prop="cover">
           <el-upload
             class="upload-demo"
-            action="/api/upload/single"
+            :action="getUploadUrl()"
             :headers="uploadHeaders"
             :show-file-list="false"
             :on-success="handleUploadSuccess"
+            :on-error="handleUploadError"
             :before-upload="beforeUpload"
             name="file"
+            :with-credentials="false"
           >
             <el-button type="primary">上传封面</el-button>
           </el-upload>
@@ -105,12 +107,14 @@
         <el-form-item label="论文文件" prop="thesis_file">
           <el-upload
             class="upload-demo"
-            action="/api/upload/single"
+            :action="getUploadUrl()"
             :headers="uploadHeaders"
             :show-file-list="true"
             :on-success="handleThesisUploadSuccess"
+            :on-error="handleUploadError"
             :before-upload="beforeThesisUpload"
             name="file"
+            :with-credentials="false"
           >
             <el-button type="primary">上传论文文件</el-button>
           </el-upload>
@@ -122,12 +126,14 @@
         <el-form-item label="项目文件" prop="project_file">
           <el-upload
             class="upload-demo"
-            action="/api/upload/single"
+            :action="getUploadUrl()"
             :headers="uploadHeaders"
             :show-file-list="true"
             :on-success="handleProjectUploadSuccess"
+            :on-error="handleUploadError"
             :before-upload="beforeProjectUpload"
             name="file"
+            :with-credentials="false"
           >
             <el-button type="primary">上传项目文件</el-button>
           </el-upload>
@@ -142,13 +148,15 @@
         <el-form-item label="截图上传" prop="screenshots">
           <el-upload
             class="upload-demo"
-            action="/api/upload/single"
+            :action="getUploadUrl()"
             :headers="uploadHeaders"
             :show-file-list="true"
             :on-success="handleScreenshotUploadSuccess"
+            :on-error="handleUploadError"
             :before-upload="beforeImageUpload"
             name="file"
             multiple
+            :with-credentials="false"
           >
             <el-button type="primary">上传多张截图</el-button>
           </el-upload>
@@ -303,6 +311,13 @@ import { ref, reactive, computed, onMounted, nextTick } from 'vue';
 import { ElMessage } from 'element-plus';
 import service from '../axios';
 import { renderAsync } from 'docx-preview';
+
+// 动态获取上传URL
+const getUploadUrl = () => {
+  // 从axios配置中获取baseURL，如果没有则使用默认值
+  const baseURL = service.defaults.baseURL || 'http://localhost:3000';
+  return `${baseURL}/api/upload/single`;
+};
 
 // 获取当前登录用户信息
 const getUserInfo = () => {
@@ -605,30 +620,36 @@ async function previewContent(row) {
   }
 }
 
-function handleThesisUploadSuccess(res) {
-  if (res.url) {
+function handleThesisUploadSuccess(res, file) {
+  console.log('论文文件上传成功:', res, file);
+  if (res && res.url) {
     form.thesis_file = res.url;
     ElMessage.success('论文文件上传成功');
   } else {
-    ElMessage.error('论文文件上传失败');
+    ElMessage.error('论文文件上传失败，请重试');
+    console.error('上传响应异常:', res);
   }
 }
 
-function handleProjectUploadSuccess(res) {
-  if (res.url) {
+function handleProjectUploadSuccess(res, file) {
+  console.log('项目文件上传成功:', res, file);
+  if (res && res.url) {
     form.project_file = res.url;
     ElMessage.success('项目文件上传成功');
   } else {
-    ElMessage.error('项目文件上传失败');
+    ElMessage.error('项目文件上传失败，请重试');
+    console.error('上传响应异常:', res);
   }
 }
 
-function handleScreenshotUploadSuccess(res) {
-  if (res.url) {
+function handleScreenshotUploadSuccess(res, file) {
+  console.log('截图上传成功:', res, file);
+  if (res && res.url) {
     form.screenshots.push(res.url);
     ElMessage.success('截图上传成功');
   } else {
-    ElMessage.error('截图上传失败');
+    ElMessage.error('截图上传失败，请重试');
+    console.error('上传响应异常:', res);
   }
 }
 
@@ -636,13 +657,20 @@ function removeScreenshot(index) {
   form.screenshots.splice(index, 1);
 }
 
-function handleUploadSuccess(res) {
-  if (res.url) {
+function handleUploadSuccess(res, file) {
+  console.log('封面上传成功:', res, file);
+  if (res && res.url) {
     form.cover = res.url;
     ElMessage.success('封面上传成功');
   } else {
-    ElMessage.error('封面上传失败');
+    ElMessage.error('封面上传失败，请重试');
+    console.error('上传响应异常:', res);
   }
+}
+
+function handleUploadError(err, file) {
+  console.error('上传失败:', err, file);
+  ElMessage.error('文件上传失败，请检查网络连接或联系管理员');
 }
 
 function beforeThesisUpload(file) {
@@ -680,14 +708,18 @@ function beforeUpload(file) {
 }
 
 async function submitForm() {
+  if (!formRef.value) {
+    ElMessage.error('表单引用未找到');
+    return;
+  }
+  
   formRef.value.validate(async valid => {
     if (!valid) return;
     // 处理截图数组为字符串
     const screenshotsStr = Array.isArray(form.screenshots) ? form.screenshots.join('\n') : '';
     try {
       if (editMode.value) {
-  
-      const currentUser = getUserInfo();
+        const currentUser = getUserInfo();
         form.update_by = currentUser.id;
         form.update_name = currentUser.username;
         form.publisher = currentUser.username;
@@ -695,19 +727,20 @@ async function submitForm() {
         ElMessage.success('编辑成功');
       } else {
         const currentUser = getUserInfo();
-      await service.post('/content/add', {
-        ...form,
-        screenshots: form.screenshots.join('\n'),
-        create_by: currentUser.id,
-        create_name: currentUser.username,
-        publisher: currentUser.username
-      });
+        await service.post('/content/add', {
+          ...form,
+          screenshots: form.screenshots.join('\n'),
+          create_by: currentUser.id,
+          create_name: currentUser.username,
+          publisher: currentUser.username
+        });
         ElMessage.success('添加成功');
       }
       dialogVisible.value = false;
       fetchList();
     } catch (e) {
       ElMessage.error('提交失败: ' + e.message);
+      console.error('提交表单失败:', e);
     }
   });
 }
